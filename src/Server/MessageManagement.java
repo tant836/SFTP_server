@@ -4,43 +4,156 @@ import java.io.File;
 
 public class MessageManagement {
 	public Client client;
+	
+	public enum Type{
+		BYTES, STRING, RECEIVING
+	}
+	
+	private Type type;
+	
+	String stringMessage;
+	byte[] bytesMessage;
 
-	public String parseMessage(String message) {
+
+	public void parseMessage(String message) {
 		message = message.replaceAll("/[\\[\\]']+/g", "").replaceAll("\\s{2,}", " ").trim();
 		String[] splitMessage = message.split(" ");
 
 		switch (splitMessage[0].toLowerCase()) {
 		case "user":
-
-			return doUser(splitMessage[1]);
+			
+			type = Type.STRING;
+			stringMessage = doUser(splitMessage[1]);
+			break;
 
 		case "acct":
-
-			return doACCT(splitMessage[1]);
+			
+			type = Type.STRING;
+			stringMessage = doACCT(splitMessage[1]);
+			break;
 
 		case "pass":
-
-			return doPass(splitMessage[1]);
+			
+			type = Type.STRING;
+			stringMessage = doPass(splitMessage[1]);
+			break;
 
 		case "type":
-
-			return doType(splitMessage[1]);
+			
+			type = Type.STRING;
+			stringMessage = doType(splitMessage[1]);
+			break;
 
 		case "list":
 
-			return doList(splitMessage[1]);
+			type = Type.STRING;
+			stringMessage = doList(splitMessage[1]);
+			break;
 			
 		case "cdir":
 
-			return doCdir(splitMessage[1]);
+			type = Type.STRING;
+			stringMessage = doCdir(splitMessage[1]);
+			break;
 			
 		case "kill":
 
-			return doKill(splitMessage[1]);
+			type = Type.STRING;
+			stringMessage = doKill(splitMessage[1]);
+			break;
+			
+		case "name":
 
+			type = Type.STRING;
+			stringMessage = doName(splitMessage[1]);
+			break;
+			
+		case "tobe":
+
+			type = Type.STRING;
+			stringMessage = doTobe(splitMessage[1]);
+			break;
+			
+		case "retr":
+
+			type = Type.STRING;
+			stringMessage = doRetr(splitMessage[1]);
+			break;
+			
+		case "send":
+
+			type = Type.BYTES;
+			bytesMessage = doSend();
+			break;
+			
+		case "stop":
+
+			type = Type.STRING;
+			stringMessage = doStop(splitMessage[1]);
+			break;
+			
+		case "stor":
+
+			type = Type.STRING;
+			stringMessage = doStor(splitMessage[1], splitMessage[2]);
+			break;
 		}
-		return "void";
 
+	}
+	
+	public String getString() {
+		return stringMessage;
+	}
+	
+	public byte[] getBytes() {
+		return bytesMessage;
+	}
+	
+	public Type getType() {
+		return type;
+	}
+	
+	public String getUser() {
+		if(client == null || client.getUser() == null) {return "";}
+		return client.getUser();
+	}
+	
+	private String doName(String name) {
+		if (client == null) {
+			return "not logged in with user";
+		}
+		return client.startNameChange(name);
+	}
+	
+	private String doTobe(String newName) {
+		if (client == null) {
+			return "not logged in with user";
+		}
+		return client.tobe(newName);
+	}
+	
+	private String doRetr(String path) {
+		if (client == null) {
+			return "not logged in with user";
+		}
+		
+		return client.RETR(path);
+	} 
+	
+	private byte[] doSend() {
+		return client.send();
+	}
+	
+	private String doStop(String path) {
+		return client.stop();
+	}
+	
+	private String doStor(String type, String path) {
+		return client.store(type, path);
+	}
+	
+	public File getPath() {
+		return client.getPath();
 	}
 
 	private String doUser(String username) {
@@ -48,7 +161,7 @@ public class MessageManagement {
 			client = new Client(username);
 			if (client.getUser() != null) {
 				if (client.isNoPassword()) {
-					client.changeDirectory(DatabaseUtil.getDirectory(username));
+					client.changeAbsDirectory(DatabaseUtil.getDirectory(username));
 					return "!" + client.getUser() + " logged in";
 				} else {
 					return "+User-id valid, send account and password";
@@ -70,7 +183,7 @@ public class MessageManagement {
 		try {
 			if (client.setAccount(ACCT)) {
 				if (client.isNoPassword()) {
-					client.changeDirectory(DatabaseUtil.getDirectory(client.getUser(), ACCT));
+					client.changeAbsDirectory(DatabaseUtil.getDirectory(client.getUser(), ACCT));
 					return "! Account valid, logged-in";
 				} else {
 					return "+Account valid, send password";
@@ -91,7 +204,7 @@ public class MessageManagement {
 		}
 		try {
 			if (client.validatePassword(pass)) {
-				client.changeDirectory(DatabaseUtil.getDirectory(client.getUser(), client.getAccount()));
+				client.changeAbsDirectory(DatabaseUtil.getDirectory(client.getUser(), client.getAccount()));
 				return "! Logged in";
 			} else {
 				return "-Wrong password";
@@ -136,13 +249,18 @@ public class MessageManagement {
 	}
 	
 	private String doCdir(String newPath) {
-		if (client == null) {
+		if (client == null) {//start loggin process
 			return "not logged in with user";
 		}
 		return client.changeDirectory(newPath);
 	}
 	
 	private String doKill(String fileName) {
-		return "";
+		if (client == null) {//start loggin process
+			return "not logged in with user";
+		}
+		
+		
+		return client.deleteFile(fileName);
 	}
 }

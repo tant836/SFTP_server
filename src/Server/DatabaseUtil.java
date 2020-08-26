@@ -63,11 +63,11 @@ public class DatabaseUtil {
 	}
 	
 	public static String getDirectory(String user, String account) {//TODO: change these to actually do something
-		return "C:\\Users\\bergn\\Desktop";
+		return "\\Users\\bergn\\Desktop";
 	}
 	
 	public static String getDirectory(String user) {
-		return "C:\\Users\\bergn\\Desktop";
+		return "\\Users\\bergn\\Desktop";
 	}
 	
 	public static boolean checkAccount(String user, String account) throws Exception{
