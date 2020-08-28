@@ -38,10 +38,13 @@ public class DatabaseUtil {
 	        	 if(rs.getString("PASS").contentEquals("") || rs.getString("PASS").contentEquals("null")) {
 	        		 statement.close();
 			         c.close();
+			         //System.out.println("al;djf;alsdfj;a");
 		        	 return UserStatus.GOOD;
+		        	 
 	        	 }else {
 	        		 statement.close();
 			         c.close();
+			         //System.out.println("hello");
 		        	 return UserStatus.NEED_PASSWORD;
 	        	 }
 	         }else {
@@ -63,11 +66,63 @@ public class DatabaseUtil {
 	}
 	
 	public static String getDirectory(String user, String account) {//TODO: change these to actually do something
-		return "\\Users\\bergn\\Desktop";
+		
+		Connection c;
+		PreparedStatement statement;
+		
+		try {
+			
+	         Class.forName("org.sqlite.JDBC");
+	         c = DriverManager.getConnection("jdbc:sqlite:user_data.db");
+	         
+	         String sql = "SELECT * FROM user_acct_dir WHERE USER=? AND ACCT=?;";
+	         statement = c.prepareStatement(sql);
+	         statement.setString(1, user);
+	         statement.setString(2, account);
+	         ResultSet rs = statement.executeQuery();
+	         //statement.executeUpdate(sql);
+	         System.out.println(user + " " + account);
+	         if(rs.next()) {
+	        	 //rs.close();
+	        	 System.out.println(rs.getString("DIR"));
+	        	 return rs.getString("DIR");
+	         }
+	      } catch ( Exception e ) {
+	    	  e.printStackTrace();
+	         System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+	         System.exit(0);
+	      }
+		
+		return null;
+		
 	}
 	
 	public static String getDirectory(String user) {
-		return "\\Users\\bergn\\Desktop";
+		Connection c;
+		PreparedStatement statement;
+		
+		try {
+			
+	         Class.forName("org.sqlite.JDBC");
+	         c = DriverManager.getConnection("jdbc:sqlite:user_data.db");
+	         
+	         String sql = "SELECT * FROM user_dir WHERE USER=?;";
+	         statement = c.prepareStatement(sql);
+	         statement.setString(1, user);
+	         ResultSet rs = statement.executeQuery();
+	         //statement.executeUpdate(sql);
+	         
+	         if(rs.next()) {
+	        	 //rs.close();
+	        	 return rs.getString("DIR");
+	         }
+	      } catch ( Exception e ) {
+	    	  e.printStackTrace();
+	         System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+	         System.exit(0);
+	      }
+		
+		return null;
 	}
 	
 	public static boolean checkAccount(String user, String account) throws Exception{

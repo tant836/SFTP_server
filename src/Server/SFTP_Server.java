@@ -26,13 +26,9 @@ public class SFTP_Server {
 		in = new BufferedReader(new InputStreamReader(outSocket.getInputStream()));
 		dis = new DataInputStream(outSocket.getInputStream());
 		/*
-		String greeting = in.readLine();
-		if ("hello server".equals(greeting)) {
-			out.println("hello client");
-		} else {
-			out.println("unrecognized greeting");
-		}
-		*/
+		 * String greeting = in.readLine(); if ("hello server".equals(greeting)) {
+		 * out.println("hello client"); } else { out.println("unrecognized greeting"); }
+		 */
 	}
 
 	public void startMulti(int port) throws IOException {
@@ -86,36 +82,45 @@ public class SFTP_Server {
 						break;
 					}
 					String[] inputs = inputLine.split(" ");
-					if(inputs[0].equals("size")) {
-						System.out.println("---------- " + inputs[0]);
-						int fileSize = Integer.parseInt(inputs[1]);
-						out.println("+ok, waiting for file");
-						System.out.println(msgM.getPath());
-						FileOutputStream fos = new FileOutputStream(msgM.getPath());
-					    BufferedOutputStream bos = new BufferedOutputStream(fos);
-						byte[] buffer = new byte[8192];
-						long total = 0;
-						int count;
-						while (total < fileSize && (count = dis.read(buffer, 0, (int)Math.min(buffer.length, fileSize-total))) > 0)
-						{
-						  bos.write(buffer, 0, count);
-						  total += count;
-						}
-						
-						//bos.write(bytes, 0, bytes.length);
-					    bos.close();
-					}else {
-						msgM.parseMessage(inputLine);
-						if(msgM.getType() == Type.BYTES) {
-							//System.out.println(outputLine);
+					try {
+					
+						if(inputs[0].equals("size")) {
+							//if(inputs.length != 2) {
+								System.out.println("---------- " + inputs[0]);
+								int fileSize = Integer.parseInt(inputs[1]);
+								out.println("+ok, waiting for file");
+								System.out.println(msgM.getPath());
+								FileOutputStream fos = new FileOutputStream(msgM.getPath());
+							    BufferedOutputStream bos = new BufferedOutputStream(fos);
+								byte[] buffer = new byte[8192];
+								long total = 0;
+								int count;
+								while (total < fileSize && (count = dis.read(buffer, 0, (int)Math.min(buffer.length, fileSize-total))) > 0)
+								{
+								  bos.write(buffer, 0, count);
+								  total += count;
+								}
 							
-							outSocket.getOutputStream().write(msgM.getBytes());
+								//bos.write(bytes, 0, bytes.length);
+							    bos.close();
+							//}else {
+								//out.println("-ERROR incorrect command");
+							//}
 						}else {
-							outputLine = msgM.getString();
-							out.println(outputLine);
-							//System.out.println(outputLine);
-							
+							msgM.parseMessage(inputLine);
+							if(msgM.getType() == Type.BYTES) {
+								//System.out.println(outputLine);
+								
+								outSocket.getOutputStream().write(msgM.getBytes());
+							}else {
+								outputLine = msgM.getString();
+								out.println(outputLine);
+								//System.out.println(outputLine);
+								
+							}
 						}
+					}catch (Exception e) {
+						e.printStackTrace();
 					}
 				}
 

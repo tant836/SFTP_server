@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Date;
 
 public class Client {
@@ -23,7 +24,7 @@ public class Client {
 	private Path directory;
 	private File fileToBeReNamed;
 	private File fileToBeSent;
-	private String fileToSave;
+	private File fileToSave;
 	
 	public Client(String user) throws Exception {//add the directory path to this constructor
 		
@@ -31,7 +32,7 @@ public class Client {
 		
 		if(response != DatabaseUtil.UserStatus.WRONG) {
 			
-			if(response != DatabaseUtil.UserStatus.GOOD) {
+			if(response == DatabaseUtil.UserStatus.GOOD) {
 				noPassword = true;
 			}else {
 				noPassword = false;
@@ -100,6 +101,7 @@ public class Client {
 		System.out.println(message);
 		Date time;
 		String dir = "";
+		Arrays.sort(files);
 		// For each pathname in the pathnames array
 		if(verbose) {
 			for (File file : files) {
@@ -133,17 +135,25 @@ public class Client {
 	public String changeDirectory(String newDir) {
 		//verify directory is ok
 		
-		if(directory == null) {
-			directory = directory.resolve(newDir);
+		if(directory != null) {
+			Path newDirectory = directory.resolve(newDir);
+			if(newDirectory.toFile().exists()) {
+				directory = newDirectory;
+				return "! Changed working dir to " + directory.toString();
+			}else {
+				return "-Can't connect to directory because: directory not found";
+			}
 		}else {
 			return "-Error occurred";
 		}
-		return "! Changed working dir to " + directory.toString();
 	}
 	
 	public String changeAbsDirectory(String newDir) {
 		//verify directory is ok
-		
+		if(newDir == null) {
+			return "ERROR occured accessing directory";
+		}
+		System.out.println(newDir);
 		directory = FileSystems.getDefault().getPath(newDir);
 		
 		return "! Changed working dir to " + directory.toString();
@@ -154,7 +164,7 @@ public class Client {
 		File file_to_delte = directory.resolve(path).toFile();
 		
 		if(file_to_delte.delete()) {
-			return "+ " + path + " deleted";
+			return "+" + path + " deleted";
 		}else {
 			return "-Not deleted an error occurred";
 		}
@@ -170,13 +180,39 @@ public class Client {
 	}
 	
 	public String store(String type, String path) {
-		fileToSave = path;
-		System.out.println(fileToSave);
-		return "+File exists, will create new generation of file";
+		fileToSave = directory.resolve(path).toFile();
+		System.out.println(type + " " + path);
+		int counter = 1;
+		if(type.equalsIgnoreCase("new")) {
+			System.out.println(" ---------------------------------------------- ");
+			if(fileToSave.exists()) {
+				while(fileToSave.exists()) {
+					fileToSave = directory.resolve(path + "(" + counter + ")").toFile();
+					counter++;
+				}
+				return "+File exists, will create new generation of file";
+			}else {
+				return "+File does not exist, will create new file";
+			}
+		}else if(type.equalsIgnoreCase("old")) {
+			if(fileToSave.exists()) {
+				return "+Will write over old file";
+			}else {
+				return "+Will create new file";
+			}
+		}else if(type.equalsIgnoreCase("app")) {//TODO: this does not work
+			if(fileToSave.exists()) {
+				return "+Will append to file";
+			}else {
+				return "+Will create file";
+			}
+		}else {
+			return "-ERROR incorrect command";
+		}
 	}
 	
 	public File getPath() {
-		return directory.resolve(fileToSave).toFile();
+		return fileToSave;
 	}
 	
 	public byte[] send() {

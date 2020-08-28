@@ -207,7 +207,7 @@ public class MessageManagement {
 				client.changeAbsDirectory(DatabaseUtil.getDirectory(client.getUser(), client.getAccount()));
 				return "! Logged in";
 			} else {
-				return "-Wrong password";
+				return "-Wrong password, try again";
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

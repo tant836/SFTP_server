@@ -16,6 +16,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
 
 import org.junit.Test;
 
@@ -110,19 +111,19 @@ public class SFTP_Client {
 				sendingFile = true;
 				out.println(message);
 				String line = in.readLine(); //in.readLine();
-				System.out.println("-------- " + line);
+				//System.out.println("-------- " + line);
 				if(line.charAt(0) == '+') {//check the response from the server must be a +
 					out.println("size " + file.length);
-					line = in.readLine(); //in.readLine();
-					System.out.println("-------- " + line);
-					if(line.charAt(0) == '+') {//returned a +
+					String line2 = in.readLine(); //in.readLine();
+					//System.out.println("-------- " + line);
+					if(line2.charAt(0) == '+') {//returned a +
 						clientSocket.getOutputStream().write(file);
-						return "file saved on remote system";
+						return line + "\n" + line2;
 					}else {
-						return "error";
+						return line + "\n" + line2;
 					}
 				}else {
-					return "error";
+					return line;
 				}
 				
 			
@@ -165,7 +166,7 @@ public class SFTP_Client {
 		}else if(receivingFileSize){
 			try {
 				String line = in.readLine(); //in.readLine();
-				System.out.println(line);
+				//System.out.println(line);
 				receivingFileSize = false;
 				fileSize = Integer.parseInt(line);
 				return "file size: " + line;
@@ -192,9 +193,23 @@ public class SFTP_Client {
 	
 	public static void main(String[] args) {
 		SFTP_Client client = new SFTP_Client();
+		Scanner scanner = new Scanner(System.in);
+		System.out.println("welcome to the SFTP client");
+		
+		
+		
 		try {
 			client.startConnection("127.0.0.1", 115);
+			String userInput = "";
+			String response;
+			while(!userInput.equals("exit")) {
+				userInput = scanner.nextLine();
+				response = client.sendMessage(userInput);
+				System.out.println(response);
+			}
+			scanner.close();
 			
+			/*
 			String response = client.sendMessage("user tom");
 			System.out.println(response);
 			Thread.sleep(400);
@@ -230,8 +245,9 @@ public class SFTP_Client {
 			response = client.sendMessage("done");
 			System.out.println(response);
 			Thread.sleep(100);
+			*/
 			
-		} catch (IOException | InterruptedException e) {
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
